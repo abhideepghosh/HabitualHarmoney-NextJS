@@ -5,7 +5,7 @@ import { HabitCalendar } from './habit-calendar';
 import { HabitEditor } from './habit-editor';
 import { ProgressTracker } from './progress-tracker';
 import { Button } from '@/components/ui/button';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, LogOut } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,6 +34,7 @@ export function HabitualHarmonyApp({ user, onLogout }: HabitualHarmonyAppProps) 
     totalCompletedDays,
     longestStreak,
     currentStreak,
+    resetCurrentProgress,
   } = useHabitData(userKey);
 
   return (
@@ -43,25 +44,47 @@ export function HabitualHarmonyApp({ user, onLogout }: HabitualHarmonyAppProps) 
           <h1 className="text-4xl font-headline text-primary">Habitual Harmony</h1>
           <p className="text-muted-foreground">Welcome back, {user}!</p>
         </div>
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button variant="ghost" aria-label="Reset" className="p-2 rounded-full h-auto">
-              <RotateCcw className="h-5 w-5" />
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure you want to reset?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This will clear all your habit progress and log you out. This action cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={onLogout}>Continue</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <div className="flex items-center gap-2">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" aria-label="Reset Progress" className="p-2 rounded-full h-auto">
+                <RotateCcw className="h-5 w-5" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Reset current progress?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will reset your calendar, current streak, and total days completed. Your habit and longest streak will be kept. This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={resetCurrentProgress}>Reset Progress</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" aria-label="Exit and clear all data" className="p-2 rounded-full h-auto">
+                <LogOut className="h-5 w-5" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Exit and clear all data?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action will log you out and permanently delete all your data, including your name, habit, and all progress. This cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={onLogout}>Exit & Clear Data</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </header>
       
       <main className="flex-grow flex flex-col gap-8">

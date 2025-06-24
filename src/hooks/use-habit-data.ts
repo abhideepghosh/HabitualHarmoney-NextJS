@@ -10,24 +10,49 @@ type AdherenceData = {
 type HabitData = {
   habit: string;
   adherence: AdherenceData;
+  longestStreak: number;
+};
+
+const calculateLongestStreakFromDates = (sortedDates: Date[]): number => {
+    if (sortedDates.length === 0) return 0;
+    let maxStreak = 1;
+    let currentStreak = 1;
+    for (let i = 1; i < sortedDates.length; i++) {
+      if (differenceInCalendarDays(sortedDates[i], sortedDates[i - 1]) === 1) {
+        currentStreak++;
+      } else {
+        currentStreak = 1;
+      }
+      if (currentStreak > maxStreak) {
+        maxStreak = currentStreak;
+      }
+    }
+    return maxStreak;
 };
 
 const getInitialData = (key: string): HabitData => {
   if (typeof window === 'undefined') {
-    return { habit: 'My New Habit', adherence: {} };
+    return { habit: 'My New Habit', adherence: {}, longestStreak: 0 };
   }
   try {
     const item = window.localStorage.getItem(key);
     if (item) {
       const data = JSON.parse(item);
       if (typeof data.habit === 'string' && typeof data.adherence === 'object' && data.adherence !== null) {
+        // For backward compatibility, if longestStreak isn't stored, calculate it.
+        if (typeof data.longestStreak !== 'number') {
+          const adherence = data.adherence || {};
+          const completed = Object.keys(adherence).filter(key => adherence[key]);
+          const sortedDates = completed.map(parseISO).sort((a, b) => a.getTime() - b.getTime());
+          data.longestStreak = calculateLongestStreakFromDates(sortedDates);
+        }
         return data;
       }
     }
   } catch (error) {
     console.error("Error reading from localStorage", error);
   }
-  return { habit: 'My New Habit', adherence: {} };
+  return { habit: 'My New Habit', adherence: {}, longestStreak: 0 };
 };
 
 export function useHabitData(userKey: string) {
@@ -76,23 +101,6 @@ export function useHabitData(userKey: string) {
   
   const totalCompletedDays = completedDays.length;
 
-  const longestStreak = useMemo(() => {
-    if (sortedDates.length === 0) return 0;
-    let maxStreak = 1;
-    let currentStreak = 1;
-    for (let i = 1; i < sortedDates.length; i++) {
-      if (differenceInCalendarDays(sortedDates[i], sortedDates[i - 1]) === 1) {
-        currentStreak++;
-      } else {
-        currentStreak = 1;
-      }
-      if (currentStreak > maxStreak) {
-        maxStreak = currentStreak;
-      }
-    }
-    return maxStreak;
-  }, [sortedDates]);
-
   const currentStreak = useMemo(() => {
     if (sortedDates.length === 0) return 0;
     
@@ -115,6 +123,19 @@ export function useHabitData(userKey: string) {
     return streak;
   }, [sortedDates]);
 
+  useEffect(() => {
+    if (currentStreak > data.longestStreak) {
+      setData(prevData => ({ ...prevData, longestStreak: currentStreak }));
+    }
+  }, [currentStreak, data.longestStreak]);
+
+  const resetCurrentProgress = () => {
+    setData(prevData => ({
+      ...prevData,
+      adherence: {},
+    }));
+  };
+
   return {
     habit: data.habit,
     setHabit,
@@ -122,7 +143,8 @@ export function useHabitData(userKey: string) {
     toggleDayCompletion,
     completedDates: sortedDates,
     totalCompletedDays,
-    longestStreak,
+    longestStreak: data.longestStreak,
     currentStreak,
+    resetCurrentProgress,
   };
 }
