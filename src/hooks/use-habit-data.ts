@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
-import { isToday, isYesterday, differenceInCalendarDays, parseISO, formatISO, startOfDay } from 'date-fns';
+import { isToday, isYesterday, differenceInCalendarDays, parse, formatISO, startOfDay } from 'date-fns';
 
 type AdherenceData = {
   [date: string]: boolean;
@@ -43,7 +43,7 @@ const getInitialData = (key: string): HabitData => {
         if (typeof data.longestStreak !== 'number') {
           const adherence = data.adherence || {};
           const completed = Object.keys(adherence).filter(key => adherence[key]);
-          const sortedDates = completed.map(parseISO).sort((a, b) => a.getTime() - b.getTime());
+          const sortedDates = completed.map(dateString => parse(dateString, 'yyyy-MM-dd', new Date())).sort((a, b) => a.getTime() - b.getTime());
           data.longestStreak = calculateLongestStreakFromDates(sortedDates);
         }
         return data;
@@ -95,7 +95,7 @@ export function useHabitData(userKey: string) {
   const { completedDays, sortedDates } = useMemo(() => {
     const adherence = data.adherence || {};
     const completed = Object.keys(adherence).filter(key => adherence[key]);
-    const sorted = completed.map(parseISO).sort((a, b) => a.getTime() - b.getTime());
+    const sorted = completed.map(dateString => parse(dateString, 'yyyy-MM-dd', new Date())).sort((a, b) => a.getTime() - b.getTime());
     return { completedDays: completed, sortedDates: sorted };
   }, [data.adherence]);
   
@@ -105,19 +105,18 @@ export function useHabitData(userKey: string) {
     if (sortedDates.length === 0) return 0;
     
     const lastDay = sortedDates[sortedDates.length - 1];
+    
+    // A "current" streak is broken if a day was missed.
     if (!isToday(lastDay) && !isYesterday(lastDay)) {
       return 0;
     }
 
-    let streak = 0;
-    if(isToday(lastDay) || isYesterday(lastDay)) {
-        streak = 1;
-        for (let i = sortedDates.length - 2; i >= 0; i--) {
-            if (differenceInCalendarDays(sortedDates[i+1], sortedDates[i]) === 1) {
-                streak++;
-            } else {
-                break;
-            }
+    let streak = 1;
+    for (let i = sortedDates.length - 2; i >= 0; i--) {
+        if (differenceInCalendarDays(sortedDates[i+1], sortedDates[i]) === 1) {
+            streak++;
+        } else {
+            break;
         }
     }
     return streak;

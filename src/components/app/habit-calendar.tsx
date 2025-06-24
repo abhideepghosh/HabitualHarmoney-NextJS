@@ -24,7 +24,7 @@ export function HabitCalendar({ onDayClick, completedDates }: HabitCalendarProps
           className="p-0"
           classNames={{
             day_selected: "bg-accent text-accent-foreground hover:bg-accent/90 focus:bg-accent focus:text-accent-foreground",
-            day_today: "bg-primary/20 text-accent-foreground",
+            day_today: "text-primary font-semibold ring-1 ring-primary",
           }}
           disabled={(date) => date > new Date()}
         />
