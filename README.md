@@ -44,7 +44,9 @@ To get a local copy up and running, follow these simple steps.
     npm run dev
     ```
 
-Open [http://localhost:9002](http://localhost:9002) with your browser to see the result.
+Open [http://localhost:9002](http://localhost:9002) or your own hosted port url with your browser to see the result.
+
+Open [Habitual Harmoney](https://habitual-harmoney-next-js.vercel.app/) with your browser to see the live demo.
 
 ## How to Use
 
